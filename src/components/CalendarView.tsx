@@ -19,22 +19,41 @@ interface Note {
   date: Date;
 }
 
-// International events and holidays data
+// Comprehensive international holidays data
 const getDateInfo = (date: Date) => {
-  const dateStr = format(date, 'MM-dd');
-  const events: { [key: string]: string[] } = {
-    '01-01': ['New Year\'s Day 🎉'],
-    '02-14': ['Valentine\'s Day 💕'],
-    '03-17': ['St. Patrick\'s Day 🍀'],
-    '04-22': ['Earth Day 🌍'],
-    '05-01': ['Labor Day 👷'],
-    '07-04': ['Independence Day 🇺🇸'],
-    '10-31': ['Halloween 🎃'],
-    '12-25': ['Christmas Day 🎄'],
-    '12-31': ['New Year\'s Eve 🥳'],
+  const month = date.getMonth() + 1;
+  const day = date.getDate();
+  const dateStr = `${month.toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`;
+  
+  const holidays: { [key: string]: string[] } = {
+    '01-01': ['New Year\'s Day 🎉', 'World Peace Day 🕊️'],
+    '01-26': ['Republic Day (India) 🇮🇳', 'Australia Day 🇦🇺'],
+    '02-14': ['Valentine\'s Day 💕', 'Friendship Day 👫'],
+    '03-08': ['International Women\'s Day 👩', 'Mother\'s Day (UK) 🌷'],
+    '03-17': ['St. Patrick\'s Day 🍀 (Ireland)', 'Holi Festival 🎨 (India)'],
+    '04-01': ['April Fool\'s Day 😄', 'Easter Sunday 🐰'],
+    '04-22': ['Earth Day 🌍', 'World Book Day 📚'],
+    '05-01': ['Labor Day 👷', 'May Day 🌸'],
+    '05-08': ['Victory Day 🏆 (Europe)', 'Mother\'s Day 👩‍👧‍👦'],
+    '06-05': ['World Environment Day 🌱', 'Father\'s Day 👨‍👧‍👦'],
+    '06-21': ['World Music Day 🎵', 'Summer Solstice ☀️'],
+    '07-04': ['Independence Day 🇺🇸', 'Canada Day 🇨🇦'],
+    '08-15': ['Independence Day 🇮🇳 (India)', 'Liberation Day 🕊️'],
+    '09-11': ['Patriot Day 🇺🇸', 'Teachers Day 👨‍🏫 (India)'],
+    '10-02': ['Gandhi Jayanti 🕊️ (India)', 'Non-Violence Day ☮️'],
+    '10-31': ['Halloween 🎃', 'Reformation Day ✝️'],
+    '11-11': ['Veterans Day 🎖️', 'Diwali 🪔 (India)'],
+    '12-25': ['Christmas Day 🎄', 'Good Governance Day 🏛️'],
+    '12-31': ['New Year\'s Eve 🥳', 'World Peace Day 🌍'],
   };
   
-  return events[dateStr] || [];
+  return holidays[dateStr] || [];
+};
+
+// Check if date is weekend (Friday or Saturday)
+const isWeekend = (date: Date) => {
+  const day = date.getDay();
+  return day === 5 || day === 6; // Friday = 5, Saturday = 6
 };
 
 export const CalendarView = () => {
@@ -129,14 +148,20 @@ export const CalendarView = () => {
               className={`min-h-32 p-2 border-r border-b border-[#D1D8BE] cursor-pointer hover:bg-[#EEEFE0] transition-colors relative ${
                 date && !isSameMonth(date, currentDate) ? 'text-gray-400 bg-gray-50' : ''
               } ${
-                date && isToday(date) ? 'bg-[#A7C1A8] bg-opacity-20 border-2 border-[#819A91]' : ''
+                date && isToday(date) ? 'bg-[#A7C1A8] bg-opacity-30 border-2 border-[#819A91] font-bold' : ''
+              } ${
+                date && isWeekend(date) ? 'bg-blue-50' : ''
               }`}
               onClick={() => date && handleDateClick(date)}
             >
               {date && (
                 <>
                   <div className="flex items-center justify-between mb-2">
-                    <div className={`font-medium text-sm ${isToday(date) ? 'font-bold text-[#819A91]' : ''}`}>
+                    <div className={`font-medium text-sm ${
+                      isToday(date) ? 'font-bold text-[#819A91] text-lg' : ''
+                    } ${
+                      isWeekend(date) ? 'text-blue-600' : ''
+                    }`}>
                       {format(date, 'd')}
                     </div>
                     <div className="flex items-center gap-1">
@@ -146,7 +171,7 @@ export const CalendarView = () => {
                     </div>
                   </div>
                   
-                  {/* International events */}
+                  {/* International holidays */}
                   {getDateInfo(date).map((event, idx) => (
                     <div
                       key={idx}

@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { X, Plus, Edit3, Check, Trash2 } from 'lucide-react';
-import { format } from 'date-fns';
+import { format, isSameDay } from 'date-fns';
 
 interface Task {
   id: string;
@@ -47,25 +47,22 @@ export const TaskModal: React.FC<TaskModalProps> = ({
   const [isAddingTask, setIsAddingTask] = useState(false);
 
   const dayTasks = selectedDate 
-    ? tasks.filter(task => 
-        task.date.toDateString() === selectedDate.toDateString()
-      )
+    ? tasks.filter(task => isSameDay(task.date, selectedDate))
     : [];
 
-  const dayNotes = selectedDate 
-    ? notes.filter(note => 
-        note.date.toDateString() === selectedDate.toDateString()
-      )
-    : [];
+  const dayNote = selectedDate 
+    ? notes.find(note => isSameDay(note.date, selectedDate))
+    : null;
 
-  // Load existing note content when modal opens
+  // Load existing note content when modal opens or date changes
   useEffect(() => {
-    if (selectedDate && dayNotes.length > 0) {
-      setNoteContent(dayNotes[0].content);
+    if (selectedDate) {
+      const existingNote = notes.find(note => isSameDay(note.date, selectedDate));
+      setNoteContent(existingNote ? existingNote.content : '');
     } else {
       setNoteContent('');
     }
-  }, [selectedDate, dayNotes]);
+  }, [selectedDate, notes]);
 
   const addTask = () => {
     if (!newTask.title.trim() || !selectedDate) return;
@@ -87,19 +84,27 @@ export const TaskModal: React.FC<TaskModalProps> = ({
   const saveNote = () => {
     if (!selectedDate) return;
 
-    if (dayNotes.length > 0) {
+    const existingNote = notes.find(note => isSameDay(note.date, selectedDate));
+    
+    if (existingNote) {
       // Update existing note
-      setNotes(prev => 
-        prev.map(note => 
-          note.id === dayNotes[0].id 
-            ? { ...note, content: noteContent }
-            : note
-        )
-      );
-    } else {
-      // Create new note
+      if (noteContent.trim() === '') {
+        // Remove note if content is empty
+        setNotes(prev => prev.filter(note => note.id !== existingNote.id));
+      } else {
+        // Update existing note
+        setNotes(prev => 
+          prev.map(note => 
+            note.id === existingNote.id 
+              ? { ...note, content: noteContent }
+              : note
+          )
+        );
+      }
+    } else if (noteContent.trim() !== '') {
+      // Create new note only if content is not empty
       const newNote: Note = {
-        id: Date.now().toString(),
+        id: `${selectedDate.getTime()}-${Date.now()}`,
         content: noteContent,
         date: selectedDate,
       };
@@ -176,7 +181,7 @@ export const TaskModal: React.FC<TaskModalProps> = ({
             }`}
             onClick={() => setActiveTab('notes')}
           >
-            Notes
+            Notes {dayNote ? '📝' : ''}
           </button>
         </div>
 
