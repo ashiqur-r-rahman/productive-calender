@@ -26,17 +26,18 @@ export const AIAssistant = () => {
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
-    const savedApiKey = localStorage.getItem('gemini_api_key');
-    if (savedApiKey) {
-      setApiKey(savedApiKey);
-      // Update welcome message
-      setMessages([{
-        id: 1,
-        type: 'ai',
-        content: "Hi! I'm your AI scheduling assistant powered by Gemini. I can help you organize tasks, suggest optimal meeting times, and provide productivity insights. How can I help you today?",
-        timestamp: new Date(),
-      }]);
-    }
+    // Auto-set the API key
+    const providedApiKey = 'AIzaSyCk7-We_YqPvptRpnbiBXfW60-3oeuezvo';
+    localStorage.setItem('gemini_api_key', providedApiKey);
+    setApiKey(providedApiKey);
+    
+    // Update welcome message
+    setMessages([{
+      id: 1,
+      type: 'ai',
+      content: "Hi! I'm your AI scheduling assistant powered by Gemini. I can help you organize tasks, suggest optimal meeting times, and provide productivity insights. How can I help you today?",
+      timestamp: new Date(),
+    }]);
   }, []);
 
   const callGeminiAPI = async (userMessage: string) => {
@@ -162,11 +163,6 @@ export const AIAssistant = () => {
 
           {/* Messages */}
           <div className="flex-1 overflow-y-auto p-4 space-y-3">
-            {/* API Key Setup */}
-            {!apiKey && (
-              <GeminiAPISetup onApiKeySet={handleApiKeySet} />
-            )}
-            
             {messages.map((msg) => (
               <div
                 key={msg.id}
