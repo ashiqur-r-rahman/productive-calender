@@ -1,8 +1,8 @@
 
 import React, { useState } from 'react';
-import { ChevronLeft, ChevronRight, Plus } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Plus, StickyNote } from 'lucide-react';
 import { TaskModal } from './TaskModal';
-import { format, startOfMonth, endOfMonth, eachDayOfInterval, getDay, isSameMonth, isSameDay } from 'date-fns';
+import { format, startOfMonth, endOfMonth, eachDayOfInterval, getDay, isSameMonth, isSameDay, isToday } from 'date-fns';
 
 interface Task {
   id: string;
@@ -13,10 +13,35 @@ interface Task {
   date: Date;
 }
 
+interface Note {
+  id: string;
+  content: string;
+  date: Date;
+}
+
+// International events and holidays data
+const getDateInfo = (date: Date) => {
+  const dateStr = format(date, 'MM-dd');
+  const events: { [key: string]: string[] } = {
+    '01-01': ['New Year\'s Day 🎉'],
+    '02-14': ['Valentine\'s Day 💕'],
+    '03-17': ['St. Patrick\'s Day 🍀'],
+    '04-22': ['Earth Day 🌍'],
+    '05-01': ['Labor Day 👷'],
+    '07-04': ['Independence Day 🇺🇸'],
+    '10-31': ['Halloween 🎃'],
+    '12-25': ['Christmas Day 🎄'],
+    '12-31': ['New Year\'s Eve 🥳'],
+  };
+  
+  return events[dateStr] || [];
+};
+
 export const CalendarView = () => {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [tasks, setTasks] = useState<Task[]>([]);
+  const [notes, setNotes] = useState<Note[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   const monthStart = startOfMonth(currentDate);
@@ -29,6 +54,14 @@ export const CalendarView = () => {
 
   const getTasksForDate = (date: Date) => {
     return tasks.filter(task => isSameDay(task.date, date));
+  };
+
+  const getNotesForDate = (date: Date) => {
+    return notes.filter(note => isSameDay(note.date, date));
+  };
+
+  const hasNotesForDate = (date: Date) => {
+    return getNotesForDate(date).length > 0;
   };
 
   const getStatusColor = (status: string) => {
@@ -93,16 +126,37 @@ export const CalendarView = () => {
           {allDays.map((date, index) => (
             <div
               key={index}
-              className={`min-h-24 p-2 border-r border-b border-[#D1D8BE] cursor-pointer hover:bg-[#EEEFE0] transition-colors ${
-                date && !isSameMonth(date, currentDate) ? 'text-gray-400' : ''
+              className={`min-h-32 p-2 border-r border-b border-[#D1D8BE] cursor-pointer hover:bg-[#EEEFE0] transition-colors relative ${
+                date && !isSameMonth(date, currentDate) ? 'text-gray-400 bg-gray-50' : ''
+              } ${
+                date && isToday(date) ? 'bg-[#A7C1A8] bg-opacity-20 border-2 border-[#819A91]' : ''
               }`}
               onClick={() => date && handleDateClick(date)}
             >
               {date && (
                 <>
-                  <div className="font-medium text-sm mb-1">
-                    {format(date, 'd')}
+                  <div className="flex items-center justify-between mb-2">
+                    <div className={`font-medium text-sm ${isToday(date) ? 'font-bold text-[#819A91]' : ''}`}>
+                      {format(date, 'd')}
+                    </div>
+                    <div className="flex items-center gap-1">
+                      {hasNotesForDate(date) && (
+                        <StickyNote size={14} className="text-[#819A91]" />
+                      )}
+                    </div>
                   </div>
+                  
+                  {/* International events */}
+                  {getDateInfo(date).map((event, idx) => (
+                    <div
+                      key={idx}
+                      className="text-xs text-[#819A91] mb-1 truncate font-medium"
+                    >
+                      {event}
+                    </div>
+                  ))}
+                  
+                  {/* Tasks */}
                   <div className="space-y-1">
                     {getTasksForDate(date).slice(0, 2).map((task) => (
                       <div
@@ -132,6 +186,8 @@ export const CalendarView = () => {
         selectedDate={selectedDate}
         tasks={tasks}
         setTasks={setTasks}
+        notes={notes}
+        setNotes={setNotes}
       />
     </div>
   );

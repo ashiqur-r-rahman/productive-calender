@@ -12,12 +12,20 @@ interface Task {
   date: Date;
 }
 
+interface Note {
+  id: string;
+  content: string;
+  date: Date;
+}
+
 interface TaskModalProps {
   isOpen: boolean;
   onClose: () => void;
   selectedDate: Date | null;
   tasks: Task[];
   setTasks: React.Dispatch<React.SetStateAction<Task[]>>;
+  notes: Note[];
+  setNotes: React.Dispatch<React.SetStateAction<Note[]>>;
 }
 
 export const TaskModal: React.FC<TaskModalProps> = ({
@@ -26,6 +34,8 @@ export const TaskModal: React.FC<TaskModalProps> = ({
   selectedDate,
   tasks,
   setTasks,
+  notes,
+  setNotes,
 }) => {
   const [activeTab, setActiveTab] = useState<'tasks' | 'notes'>('tasks');
   const [newTask, setNewTask] = useState({
@@ -33,7 +43,7 @@ export const TaskModal: React.FC<TaskModalProps> = ({
     description: '',
     priority: 'Medium' as 'High' | 'Medium' | 'Low',
   });
-  const [notes, setNotes] = useState('');
+  const [noteContent, setNoteContent] = useState('');
   const [isAddingTask, setIsAddingTask] = useState(false);
 
   const dayTasks = selectedDate 
@@ -41,6 +51,21 @@ export const TaskModal: React.FC<TaskModalProps> = ({
         task.date.toDateString() === selectedDate.toDateString()
       )
     : [];
+
+  const dayNotes = selectedDate 
+    ? notes.filter(note => 
+        note.date.toDateString() === selectedDate.toDateString()
+      )
+    : [];
+
+  // Load existing note content when modal opens
+  useEffect(() => {
+    if (selectedDate && dayNotes.length > 0) {
+      setNoteContent(dayNotes[0].content);
+    } else {
+      setNoteContent('');
+    }
+  }, [selectedDate, dayNotes]);
 
   const addTask = () => {
     if (!newTask.title.trim() || !selectedDate) return;
@@ -57,6 +82,29 @@ export const TaskModal: React.FC<TaskModalProps> = ({
     setTasks(prev => [...prev, task]);
     setNewTask({ title: '', description: '', priority: 'Medium' });
     setIsAddingTask(false);
+  };
+
+  const saveNote = () => {
+    if (!selectedDate) return;
+
+    if (dayNotes.length > 0) {
+      // Update existing note
+      setNotes(prev => 
+        prev.map(note => 
+          note.id === dayNotes[0].id 
+            ? { ...note, content: noteContent }
+            : note
+        )
+      );
+    } else {
+      // Create new note
+      const newNote: Note = {
+        id: Date.now().toString(),
+        content: noteContent,
+        date: selectedDate,
+      };
+      setNotes(prev => [...prev, newNote]);
+    }
   };
 
   const updateTaskStatus = (taskId: string, newStatus: Task['status']) => {
@@ -255,12 +303,15 @@ export const TaskModal: React.FC<TaskModalProps> = ({
             <div>
               <textarea
                 placeholder="Write your notes for this date..."
-                value={notes}
-                onChange={(e) => setNotes(e.target.value)}
+                value={noteContent}
+                onChange={(e) => setNoteContent(e.target.value)}
                 className="w-full h-64 p-4 border border-[#D1D8BE] rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-[#A7C1A8]"
               />
               <div className="flex justify-end mt-4">
-                <button className="px-4 py-2 bg-[#819A91] text-white rounded hover:bg-[#A7C1A8] transition-colors">
+                <button 
+                  onClick={saveNote}
+                  className="px-4 py-2 bg-[#819A91] text-white rounded hover:bg-[#A7C1A8] transition-colors"
+                >
                   Save Notes
                 </button>
               </div>

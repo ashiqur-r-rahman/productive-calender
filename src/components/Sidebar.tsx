@@ -3,13 +3,18 @@ import React, { useState } from 'react';
 import { Calendar, BarChart3, FileText, Settings, ChevronLeft, ChevronRight } from 'lucide-react';
 
 const navigation = [
-  { name: 'Calendar', icon: Calendar, current: true },
-  { name: 'Dashboard', icon: BarChart3, current: false },
-  { name: 'Notes Archive', icon: FileText, current: false },
-  { name: 'Settings', icon: Settings, current: false },
+  { name: 'Calendar', icon: Calendar, current: true, id: 'calendar' },
+  { name: 'Dashboard', icon: BarChart3, current: false, id: 'dashboard' },
+  { name: 'Notes Archive', icon: FileText, current: false, id: 'notes' },
+  { name: 'Settings', icon: Settings, current: false, id: 'settings' },
 ];
 
-export const Sidebar = () => {
+interface SidebarProps {
+  currentView: string;
+  onViewChange: (view: string) => void;
+}
+
+export const Sidebar: React.FC<SidebarProps> = ({ currentView, onViewChange }) => {
   const [collapsed, setCollapsed] = useState(false);
 
   return (
@@ -31,11 +36,11 @@ export const Sidebar = () => {
       <nav className="mt-8">
         <div className="px-2 space-y-1">
           {navigation.map((item) => (
-            <a
+            <button
               key={item.name}
-              href="#"
-              className={`group flex items-center px-2 py-2 text-sm font-medium rounded-md transition-colors ${
-                item.current
+              onClick={() => onViewChange(item.id)}
+              className={`w-full group flex items-center px-2 py-2 text-sm font-medium rounded-md transition-colors ${
+                currentView === item.id
                   ? 'bg-[#A7C1A8] text-white'
                   : 'text-gray-700 hover:bg-[#D1D8BE] hover:text-[#819A91]'
               }`}
@@ -45,7 +50,7 @@ export const Sidebar = () => {
                 aria-hidden="true"
               />
               {!collapsed && item.name}
-            </a>
+            </button>
           ))}
         </div>
       </nav>
