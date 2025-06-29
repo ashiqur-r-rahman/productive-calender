@@ -166,7 +166,12 @@ export const CalendarView = () => {
                     </div>
                     <div className="flex items-center gap-1">
                       {hasNotesForDate(date) && (
-                        <StickyNote size={14} className="text-[#819A91]" />
+                        <div className="relative">
+                          <StickyNote 
+                            size={18} 
+                            className="text-yellow-500 fill-yellow-400 drop-shadow-sm" 
+                          />
+                        </div>
                       )}
                     </div>
                   </div>
@@ -175,7 +180,7 @@ export const CalendarView = () => {
                   {getDateInfo(date).map((event, idx) => (
                     <div
                       key={idx}
-                      className="text-xs text-[#819A91] mb-1 truncate font-medium"
+                      className="text-xs text-blue-600 mb-1 truncate font-medium"
                     >
                       {event}
                     </div>
